@@ -1,2 +1,2 @@
 # Smart-Home-Assistant
-智能家居控制系统
+![GitHub License](https://img.shields.io/github/license/ZhuchenZhong/Smart-Home-Assistant)
