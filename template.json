@@ -1,0 +1,86 @@
+{
+    "name": "default_workflow",
+    "version": "1.0.0",
+    "description": "基础工作流模板",
+    "parameters": {
+        "input_dir": {
+            "type": "string",
+            "description": "输入目录路径"
+        },
+        "output_dir": {
+            "type": "string",
+            "description": "输出目录路径"
+        },
+        "max_iterations": {
+            "type": "integer",
+            "description": "最大循环次数",
+            "default": 5
+        }
+    },
+    "steps": [
+        {
+            "name": "data_preprocessing",
+            "type": "python_script",
+            "script_path": "scripts/preprocess.py",
+            "inputs": [
+                "${parameters.input_dir}"
+            ],
+            "outputs": [
+                "tmp/processed_data"
+            ]
+        },
+        {
+            "name": "model_training",
+            "type": "python_script",
+            "script_path": "scripts/train.py",
+            "inputs": [
+                "tmp/processed_data"
+            ],
+            "outputs": [
+                "${parameters.output_dir}/model.pkl"
+            ]
+        },
+        {
+            "name": "processing_loop",
+            "type": "loop",
+            "condition": "${current_iteration < parameters.max_iterations}",
+            "steps": [
+                {
+                    "name": "batch_processing",
+                    "type": "python_script",
+                    "script_path": "scripts/process_batch.py",
+                    "inputs": [
+                        "${loop_item}"
+                    ]
+                }
+            ],
+            "iterator": "${range(parameters.max_iterations)}"
+        },
+        {
+            "name": "feature_switch",
+            "type": "conditional",
+            "condition": "${parameters.enable_advanced_feature}",
+            "steps": [
+                {
+                    "name": "advanced_processing",
+                    "type": "python_script",
+                    "script_path": "scripts/advanced.py",
+                    "inputs": [
+                        "tmp/processed_data"
+                    ]
+                }
+            ],
+            "else_steps": [
+                {
+                    "name": "basic_processing",
+                    "type": "python_script",
+                    "script_path": "scripts/basic.py"
+                }
+            ]
+        }
+    ],
+    "error_handling": {
+        "retry_attempts": 3,
+        "email_notification": "admin@example.com"
+    }
+}
